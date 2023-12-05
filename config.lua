@@ -2,12 +2,13 @@
 -- TODO: implement UI ^
 
 --- @class KillRingConfig
---- @field values string
---- @field max_size integer
---- @field open_kind string
+--- @field max_size? integer
+--- @field open_kind? OpenKind
+--- @field buffer_local? boolean
 local M = {}
 
---- @param opts? table<string, any>
+--- Merges users configuration specified in opts with the default config
+--- @param opts? KillRingConfig
 --- @return KillRingConfig
 function M.get_config(opts)
   local config = M.get_default_config()
@@ -26,6 +27,7 @@ function M.get_default_config()
   return {
     max_size = 10,
     open_kind = "telescope", -- < TODO: implement open UI
+    buffer_local = false,
   }
 end
 
