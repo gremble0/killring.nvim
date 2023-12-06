@@ -1,37 +1,14 @@
 local config = require("killring.config")
+local element = require("killring.element")
 
 ---@class KillRing
 ---@field config KillRingConfig
----@field values string[][] TODO: make own class for this? (list of values in kill ring, nested array for multiline values)
+---@field values KillRingElement[]
 local M = {}
-
----@param s string
----@return string[]
-function M._split_by_newlines(s) -- TODO: move to separate module
-  local lines = {}
-
-  for line, _ in s:gmatch("[^\n\r]+") do
-    table.insert(lines, line)
-  end
-
-  return lines
-end
-
----@param lines string[]
----@return string
-function M._cat_newlines(lines)
-  local s = ""
-
-  for _, line in ipairs(lines) do
-    s = s .. line .. M.config.line_separator
-  end
-
-  return s
-end
 
 ---@param value string
 function M.add_to_kill_ring(value)
-  local parsed_value = M._split_by_newlines(value)
+  local parsed_value = element:new(value, M.config.line_separator)
 
   if #M.values < M.config.max_size then
     M.values[#M.values + 1] = parsed_value
@@ -43,7 +20,18 @@ function M.add_to_kill_ring(value)
   end
 end
 
-function M.paste_from_kill_ring(opts) -- TODO: move parts of function to UI module
+---@param index integer
+function M.paste_from_index(index)
+  local at_index = M.values[index]
+
+  if at_index:length() == 1 then -- TODO "b" for blockwise-visual mode
+    vim.api.nvim_put({ at_index:as_string() }, "c", true, true)
+  else
+    vim.api.nvim_put(at_index:as_string_array(), "l", true, true)
+  end
+end
+
+function M.open(opts) -- TODO: move parts of function to UI module
   local pickers = require("telescope.pickers")
   local finders = require("telescope.finders")
   local actions = require("telescope.actions")
@@ -52,20 +40,20 @@ function M.paste_from_kill_ring(opts) -- TODO: move parts of function to UI modu
 
   local catted_values = {}
   for _, value in ipairs(M.values) do
-    table.insert(catted_values, M._cat_newlines(value))
+    table.insert(catted_values, value:as_string())
   end
 
   pickers.new(opts, {
     prompt_title = "Paste from kill ring",
     finder = finders.new_table {
-      results = catted_values, -- TODO: self and ':' things?
+      results = catted_values,
     },
     sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr, _)
       actions.select_default:replace(function ()
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
-        vim.api.nvim_put(M.values[selection.index], "l", true, true)
+        M.paste_from_index(selection.index)
       end)
       return true
     end

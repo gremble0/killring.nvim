@@ -3,8 +3,8 @@
 
 ---@class KillRingConfig
 ---@field max_size? integer
----@field open_kind? OpenKind
----@field buffer_local? boolean
+---@field open_kind? OpenKind -- TODO: implement this
+---@field buffer_local? boolean -- TODO: implement this
 ---@field line_separator? string
 local M = {}
 
@@ -27,7 +27,7 @@ end
 function M.get_default_config()
   return {
     max_size = 10,
-    open_kind = "telescope", -- < TODO: implement open UI
+    open_kind = "telescope",
     buffer_local = false,
     line_separator = "󰌑"
   }
