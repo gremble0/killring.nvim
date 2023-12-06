@@ -35,13 +35,13 @@ function M.open(opts) -- TODO: move parts of function to UI module
 
   local catted_values = {}
   for _, value in ipairs(M.values) do
-    table.insert(catted_values, value:as_string())
+    catted_values[#catted_values + 1] = value:as_string()
   end
 
   pickers.new(opts, {
     prompt_title = "Paste from kill ring",
     finder = finders.new_table {
-      results = catted_values,--M.values,
+      results = catted_values,
     },
     sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr, _)
