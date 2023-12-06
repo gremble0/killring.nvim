@@ -1,15 +1,16 @@
---- @alias OpenKind "telescope" | "split"
+---@alias OpenKind "telescope" | "split"
 -- TODO: implement UI ^
 
---- @class KillRingConfig
---- @field max_size? integer
---- @field open_kind? OpenKind
---- @field buffer_local? boolean
+---@class KillRingConfig
+---@field max_size? integer
+---@field open_kind? OpenKind
+---@field buffer_local? boolean
+---@field line_separator? string
 local M = {}
 
 --- Merges users configuration specified in opts with the default config
---- @param opts? KillRingConfig
---- @return KillRingConfig
+---@param opts? KillRingConfig
+---@return KillRingConfig
 function M.get_config(opts)
   local config = M.get_default_config()
 
@@ -22,12 +23,13 @@ function M.get_config(opts)
   return config
 end
 
---- @return KillRingConfig
+---@return KillRingConfig
 function M.get_default_config()
   return {
     max_size = 10,
     open_kind = "telescope", -- < TODO: implement open UI
     buffer_local = false,
+    line_separator = "󰌑"
   }
 end
 
