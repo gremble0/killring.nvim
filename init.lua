@@ -23,12 +23,7 @@ end
 ---@param index integer
 function M.paste_from_index(index)
   local at_index = M.values[index]
-
-  if at_index:length() == 1 then -- TODO "b" for blockwise-visual mode
-    vim.api.nvim_put({ at_index:as_string() }, "c", true, true)
-  else
-    vim.api.nvim_put(at_index:as_string_array(), "l", true, true)
-  end
+  vim.api.nvim_put(at_index.lines, at_index.paste_type, true, true)
 end
 
 function M.open(opts) -- TODO: move parts of function to UI module
@@ -46,7 +41,7 @@ function M.open(opts) -- TODO: move parts of function to UI module
   pickers.new(opts, {
     prompt_title = "Paste from kill ring",
     finder = finders.new_table {
-      results = catted_values,
+      results = catted_values,--M.values,
     },
     sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr, _)
