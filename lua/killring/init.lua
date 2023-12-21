@@ -26,7 +26,9 @@ function M.paste_from_index(index)
   vim.api.nvim_put(at_index.lines, at_index.paste_type, true, true)
 end
 
-function M.open(opts) -- TODO: move parts of function to UI module
+-- TODO: cursor is not always at correct position after pasting
+-- TODO: move parts of function to UI module
+function M.open(opts)
   local pickers = require("telescope.pickers")
   local finders = require("telescope.finders")
   local actions = require("telescope.actions")
