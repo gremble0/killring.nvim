@@ -57,15 +57,46 @@ function M.open(opts)
   }):find()
 end
 
+---@return KillRing
+function M.new()
+  ---@class KillRing
+  local kill_ring = M
+  kill_ring.values = {}
+
+  vim.api.nvim_create_autocmd("TextYankPost", {
+    callback = function() kill_ring.add_to_kill_ring(vim.fn.getreg('"')) end
+  })
+
+  return kill_ring
+end
+
 ---@param opts? KillRingConfig
 function M.setup(opts)
   M.config = config.get_config(opts)
   M.values = {}
 
-  -- TODO: custom autocommand group
-  vim.api.nvim_create_autocmd("TextYankPost", {
-    callback = function() M.add_to_kill_ring(vim.fn.getreg('"')) end
-  })
+  if M.config.buffer_local then
+    vim.api.nvim_create_autocmd("BufNew", {
+      callback = function()
+        local kill_ring = M.new()
+        vim.api.nvim_create_autocmd("TextYankPost", {
+          callback = function()
+            kill_ring.add_to_kill_ring(vim.fn.getreg('"'))
+          end
+        })
+      end
+    })
+  else
+    vim.api.nvim_create_autocmd("TextYankPost", {
+      callback = function()
+        local cur_buf = vim.api.nvim_get_current_buf()
+        local buf_killring = vim.api.nvim_buf_get_var(cur_buf, "killring")
+
+        buf_killring[#buf_killring+1] = vim.fn.getreg('"')
+        vim.api.nvim_buf_set_var(cur_buf, "killring", buf_killring)
+      end
+    })
+  end
 end
 
 return M
