@@ -1,6 +1,8 @@
 local config = require("killring.config")
 local element = require("killring.element")
 
+local api = vim.api
+
 ---@class KillRing
 ---@field config KillRingConfig
 ---@field values KillRingElement[]
@@ -23,7 +25,7 @@ end
 ---@param index integer
 function M.paste_from_index(index)
   local at_index = M.values[index]
-  vim.api.nvim_put(at_index.lines, at_index.paste_type, true, true)
+  api.nvim_put(at_index.lines, at_index.paste_type, true, true)
 end
 
 -- TODO: cursor is not always at correct position after pasting
@@ -36,7 +38,14 @@ function M.open(opts)
   local conf = require("telescope.config").values
 
   local catted_values = {}
-  for _, value in ipairs(M.values) do
+  local values
+  if M.config.buffer_local then
+    values = api.nvim_buf_get_var(0, "killring")
+  else
+    values = M.values
+  end
+
+  for _, value in ipairs(values) do
     catted_values[#catted_values + 1] = value:as_string()
   end
 
@@ -57,43 +66,29 @@ function M.open(opts)
   }):find()
 end
 
----@return KillRing
-function M.new()
-  ---@class KillRing
-  local kill_ring = M
-  kill_ring.values = {}
-
-  vim.api.nvim_create_autocmd("TextYankPost", {
-    callback = function() kill_ring.add_to_kill_ring(vim.fn.getreg('"')) end
-  })
-
-  return kill_ring
-end
-
 ---@param opts? KillRingConfig
 function M.setup(opts)
   M.config = config.get_config(opts)
   M.values = {}
 
   if M.config.buffer_local then
-    vim.api.nvim_create_autocmd("BufNew", {
+    api.nvim_create_autocmd("BufNew", {
       callback = function()
-        local kill_ring = M.new()
-        vim.api.nvim_create_autocmd("TextYankPost", {
+        api.nvim_buf_set_var(0, "killring", {})
+        api.nvim_create_autocmd("TextYankPost", {
           callback = function()
-            kill_ring.add_to_kill_ring(vim.fn.getreg('"'))
+            local buf_killring = api.nvim_buf_get_var(0, "killring")
+
+            buf_killring[#buf_killring+1] = vim.fn.getreg('"')
+            api.nvim_buf_set_var(0, "killring", buf_killring)
           end
         })
       end
     })
   else
-    vim.api.nvim_create_autocmd("TextYankPost", {
+    api.nvim_create_autocmd("TextYankPost", {
       callback = function()
-        local cur_buf = vim.api.nvim_get_current_buf()
-        local buf_killring = vim.api.nvim_buf_get_var(cur_buf, "killring")
-
-        buf_killring[#buf_killring+1] = vim.fn.getreg('"')
-        vim.api.nvim_buf_set_var(cur_buf, "killring", buf_killring)
+        M.add_to_kill_ring(vim.fn.getreg('"'))
       end
     })
   end
