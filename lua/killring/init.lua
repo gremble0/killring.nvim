@@ -11,7 +11,7 @@ local M = {}
 
 ---@param value string
 function M.add_to_global(value)
-  local parsed_value = element:new(value, M.config.line_separator)
+  local parsed_value = element.new(value)
 
   if #M.values < M.config.max_size then
     M.values[#M.values + 1] = parsed_value
@@ -25,7 +25,7 @@ end
 
 ---@param value string
 function M.add_to_local(value)
-  local parsed_value = element:new(value, M.config.line_separator)
+  local parsed_value = element.new(value)
   local local_killring = api.nvim_buf_get_var(0, "killring")
 
   if #local_killring < M.config.max_size then
@@ -48,6 +48,7 @@ end
 
 function M.paste_from_local_index(index)
   local local_killring = api.nvim_buf_get_var(0, "killring")
+  -- print(vim.inspect(local_killring))
   local at_index = local_killring[index]
   api.nvim_put(at_index.lines, at_index.paste_type, true, true)
 end
@@ -69,10 +70,18 @@ function M.open(opts)
     values = M.values
   end
 
-  print("___")
   for _, value in ipairs(values) do
-    print(vim.inspect(value))
-    catted_values[#catted_values + 1] = value:as_string()
+    -- catted_values[#catted_values + 1] = value.as_string()
+    local s = ""
+    if #value.lines == 1 and value.paste_type == "c" then
+      s = value.lines[1]
+    else
+      for _, line in ipairs(value.lines) do
+        s = s .. line .. M.config.line_separator
+      end
+    end
+
+    catted_values[#catted_values + 1] = s
   end
 
   pickers.new(opts, {
@@ -101,14 +110,24 @@ function M.setup(opts)
   M.config = config.get_config(opts)
 
   if M.config.buffer_local then
-    api.nvim_create_autocmd("BufNew", {
+    -- Suboptimal as this will be called more often than necessary, but no
+    -- autocmds fit the needs of this plugin
+    api.nvim_create_autocmd("BufWinEnter", {
       callback = function()
-        api.nvim_buf_set_var(0, "killring", {})
-        api.nvim_create_autocmd("TextYankPost", {
-          callback = function()
-            M.add_to_local(vim.fn.getreg('"'))
-          end
-        })
+        local is_set, _ = pcall(function()
+          api.nvim_buf_get_var(0, "killring")
+        end)
+
+        if not is_set then
+          api.nvim_buf_set_var(0, "killring", {})
+        end
+      end
+    })
+
+    api.nvim_create_autocmd("TextYankPost", {
+      callback = function()
+        M.add_to_local(vim.fn.getreg('"'))
+        -- print(vim.inspect(api.nvim_buf_get_var(0, "killring")))
       end
     })
   else

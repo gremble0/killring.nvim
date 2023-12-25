@@ -1,18 +1,14 @@
 ---@class KillRingElement
 ---@field lines string[]
 ---@field paste_type string
----@field line_separator string
-local KillRingElement = {}
-KillRingElement.__index = KillRingElement
+local M = {}
 
 ---@param lines string
----@param line_separator string
 ---@return KillRingElement
-function KillRingElement:new(lines, line_separator) -- TODO remove line_separator from this class
-  local element = setmetatable({
-    lines = {},
-    line_separator = line_separator,
-  }, self)
+function M.new(lines) -- TODO remove line_separator from this class
+  ---@class KillRingElement
+  local element = {}
+  element.lines = {}
 
   for line, _ in lines:gmatch("[^\n\r]+") do
     element.lines[#element.lines + 1] = line
@@ -27,19 +23,4 @@ function KillRingElement:new(lines, line_separator) -- TODO remove line_separato
   return element
 end
 
----Concatenates the lines in self.lines into one string separated by self.line_separator
----@return string
-function KillRingElement:as_string()
-  if #self.lines == 1 and self.paste_type == "c" then
-    return self.lines[1]
-  end
-
-  local s = ""
-  for _, line in ipairs(self.lines) do
-    s = s .. line .. self.line_separator
-  end
-
-  return s
-end
-
-return KillRingElement
+return M
