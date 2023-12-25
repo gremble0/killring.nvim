@@ -9,22 +9,22 @@ KillRingElement.__index = KillRingElement
 ---@param line_separator string
 ---@return KillRingElement
 function KillRingElement:new(lines, line_separator) -- TODO remove line_separator from this class
-  local kvalue = setmetatable({
+  local element = setmetatable({
     lines = {},
     line_separator = line_separator,
   }, self)
 
   for line, _ in lines:gmatch("[^\n\r]+") do
-    kvalue.lines[#kvalue.lines + 1] = line
+    element.lines[#element.lines + 1] = line
   end
 
-  if (#kvalue.lines > 1) or (lines:find("\n") and #kvalue.lines == 1) then
-    kvalue.paste_type = "l"
+  if (#element.lines > 1) or (lines:find("\n") and #element.lines == 1) then
+    element.paste_type = "l"
   else
-    kvalue.paste_type = "c"
+    element.paste_type = "c"
   end
 
-  return kvalue
+  return element
 end
 
 ---Concatenates the lines in self.lines into one string separated by self.line_separator
