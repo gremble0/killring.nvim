@@ -1,13 +1,18 @@
 local config = require("killring.config")
 local buffer_local = require("killring.local")
 local global = require("killring.global")
---TODO: 2 files, global, local
 
 local api = vim.api
 
+---Abstract class for the implementations of the backend for the plugin
+---@class KillRingImplementation
+---@field get_values fun(): KillRingElement[]
+---@field add fun(value: string)
+---@field paste_from_index fun(index: integer)
+
 ---@class KillRing
 ---@field config KillRingConfig
----@field implementation KillRingGlobal | KillRingLocal TODO: inheritance maybe
+---@field implementation KillRingImplementation
 local M = {}
 
 -- TODO: cursor is not always at correct position after pasting

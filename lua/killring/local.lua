@@ -1,6 +1,6 @@
 local element = require("killring.element")
 
----@class KillRingLocal
+---@class KillRingLocal: KillRingImplementation
 ---@field max_size integer
 local M = {}
 
@@ -50,7 +50,7 @@ function M.new(config)
 
   return M
 end
---
+
 ---@return KillRingElement[]
 function M.get_values()
   return api.nvim_buf_get_var(0, "killring")

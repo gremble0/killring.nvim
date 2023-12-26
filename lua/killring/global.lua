@@ -1,6 +1,6 @@
 local element = require("killring.element")
 
----@class KillRingGlobal
+---@class KillRingGlobal: KillRingImplementation
 ---@field values KillRingElement[]
 ---@field max_size integer
 local M = {}
